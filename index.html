@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Module 1 • Financial Foundation | Heartland Farm Co.</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    .artifact-card { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+    .tracker-toast {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      z-index: 80;
+      transform: translateY(20px);
+      opacity: 0;
+      pointer-events: none;
+      transition: all .25s ease;
+    }
+    .tracker-toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+<!-- Learner Identity Gate -->
+<div id="learner-gate" class="fixed inset-0 bg-slate-950/80 z-[90] flex items-center justify-center p-4">
+  <div class="bg-white rounded-[2rem] max-w-xl w-full p-8 shadow-2xl">
+    <div class="w-14 h-14 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-2xl mb-5">
+      <i class="fa-solid fa-seedling"></i>
+    </div>
+    <h2 class="text-3xl font-bold text-emerald-700 mb-2">Save your Module 1 responses</h2>
+    <p class="text-gray-600 mb-6">Enter your name and email/learner ID. Your answers will save in this browser and can also be sent to a tracking sheet if an endpoint is connected.</p>
+
+    <div class="space-y-4">
+      <div>
+        <label for="learner-name" class="block text-sm font-bold text-gray-700 mb-2">Name</label>
+        <input id="learner-name" class="w-full border border-gray-300 rounded-2xl p-4 text-lg" placeholder="Jane Smith">
+      </div>
+      <div>
+        <label for="learner-id" class="block text-sm font-bold text-gray-700 mb-2">Email or learner ID</label>
+        <input id="learner-id" class="w-full border border-gray-300 rounded-2xl p-4 text-lg" placeholder="jane@school.edu">
+      </div>
+      <button id="start-activity-btn" class="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white text-xl font-semibold rounded-3xl">Start Module 1</button>
+      <p class="text-xs text-gray-500 text-center">Tip: you can prefill this with URL parameters like <strong>?learner=jane@school.edu&name=Jane%20Smith</strong></p>
+    </div>
+  </div>
+</div>
+
+<div class="max-w-6xl mx-auto p-8">
+  <div class="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-6 mb-8">
+    <div>
+      <h1 class="text-4xl font-bold text-emerald-700">Module 1 • Financial Foundation</h1>
+      <p class="text-xl text-gray-600">Day 1 — What do you actually have at Heartland Farm Co.?</p>
+      <p id="learner-display" class="text-sm text-gray-500 mt-2"></p>
+    </div>
+    <div class="text-left lg:text-right">
+      <div class="text-sm text-gray-500">Progress • <span id="answers-complete-display" class="font-bold">0</span> of 4 answers finalized</div>
+      <div class="h-2 bg-gray-200 rounded-full w-full lg:w-64 mt-2">
+        <div id="progress-fill" class="h-2 bg-emerald-600 rounded-full w-0 transition-all"></div>
+      </div>
+      <button id="reset-progress-btn" class="mt-3 text-xs text-gray-500 underline hover:text-gray-700">Reset saved progress</button>
+    </div>
+  </div>
+
+  <!-- Tracking Status -->
+  <div class="bg-white border border-gray-200 rounded-3xl p-5 mb-8 flex flex-col md:flex-row gap-4 md:items-center md:justify-between">
+    <div>
+      <h2 class="font-bold text-gray-800 flex items-center gap-2"><i class="fa-solid fa-cloud-arrow-up text-emerald-600"></i> Response tracking</h2>
+      <p id="tracking-status" class="text-sm text-gray-600 mt-1">Browser save is active. Cloud tracking is not connected yet.</p>
+    </div>
+    <button id="download-json-btn" class="py-3 px-5 bg-gray-900 hover:bg-gray-800 text-white rounded-2xl font-semibold"><i class="fa-solid fa-download mr-2"></i>Download answer JSON</button>
+  </div>
+
+  <!-- Artifacts -->
+  <div class="mb-12">
+    <h2 class="text-2xl font-semibold mb-6 flex items-center gap-3"><i class="fa-solid fa-folder-open text-emerald-600"></i> Farm Artifacts – Review These First</h2>
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6" id="artifacts-grid"></div>
+  </div>
+
+  <!-- Questions -->
+  <div id="questions-container" class="space-y-12"></div>
+
+  <!-- Completion -->
+  <div id="completion-panel" class="hidden mt-12 bg-emerald-50 border border-emerald-200 rounded-3xl p-8">
+    <h2 class="text-3xl font-bold text-emerald-700 mb-3">🎉 Module 1 Complete</h2>
+    <p class="text-gray-700 mb-5">All four responses have been finalized. Copy the completion code below if your instructor asks you to submit proof in Canvas.</p>
+    <div class="bg-white border border-emerald-200 rounded-2xl p-5 mb-5">
+      <div class="text-xs uppercase tracking-wide font-bold text-gray-500 mb-1">Completion code</div>
+      <div id="completion-code" class="text-2xl font-mono font-bold text-gray-900 break-all"></div>
+    </div>
+    <div class="flex flex-wrap gap-3">
+      <button id="copy-code-btn" class="py-3 px-5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-2xl font-semibold"><i class="fa-solid fa-copy mr-2"></i>Copy completion code</button>
+      <button id="download-final-json-btn" class="py-3 px-5 bg-gray-900 hover:bg-gray-800 text-white rounded-2xl font-semibold"><i class="fa-solid fa-file-code mr-2"></i>Download final JSON</button>
+    </div>
+  </div>
+</div>
+
+<!-- Artifact Modal -->
+<div id="artifact-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+  <div class="bg-white rounded-3xl max-w-3xl w-full mx-4 max-h-[90vh] overflow-auto">
+    <div class="p-8">
+      <button onclick="closeModal()" class="float-right text-3xl text-gray-400 hover:text-gray-600">×</button>
+      <div id="modal-content"></div>
+    </div>
+  </div>
+</div>
+
+<div id="tracker-toast" class="tracker-toast bg-slate-900 text-white rounded-2xl shadow-xl py-3 px-5 text-sm"></div>
+
+<script>
+  // =========================================================
+  // LIGHTWEIGHT TRACKING CONFIG
+  // Paste your Google Apps Script Web App URL below when ready.
+  // Example: const TRACKING_ENDPOINT = 'https://script.google.com/macros/s/XXXXX/exec';
+  // =========================================================
+  const TRACKING_ENDPOINT = '';
+  const COURSE_ID = 'heartland-module-1-financial-foundation';
+  const STORAGE_KEY = 'heartland_module_1_tracking_v1';
+
+  const artifacts = [
+    {
+      id: 1, title: "Operation Profile", icon: "fa-tractor",
+      short: "2,400 acres • 120 cow-calf • Todd, Jake, Linda, Dale",
+      full: `<h3 class="text-2xl font-bold mb-4">Operation Profile</h3>
+        <p class="mb-6">West-central Indiana family farm. Todd (52) built it from 800 acres. Jake (27) is back full-time. Linda handles books. Dale has been the right-hand man for 8 years.</p>
+        <ul class="space-y-3 text-sm">
+          <li><strong>2,400 total acres</strong> – 800 owned, 1,000 cash rented, 600 pasture/hay</li>
+          <li><strong>120 head spring-calving cow-calf herd</strong></li>
+          <li><strong>Revenue mix</strong>: Corn 48%, Soybeans 35%, Cattle 13%, Storage 4%</li>
+        </ul>`
+    },
+    {
+      id: 2, title: "Income Statement (Year 3)", icon: "fa-chart-bar",
+      short: "Corn is LOSING money. Soybeans carry everything.",
+      full: `<h3 class="text-2xl font-bold mb-4">Income Statement – Year 3 Actuals</h3>
+        <p class="text-red-600 font-semibold mb-4">Corn: –$60,200 net (losing money on fully-allocated basis)</p>
+        <p class="text-emerald-600 font-semibold mb-6">Soybeans: +$106,200 net (carrying the farm)</p>
+        <p class="text-emerald-600">Cattle: +$14,600</p>
+        <p class="text-xl font-medium mt-8">Total Net Farm Income: <span class="text-emerald-600">$60,600</span></p>`
+    },
+    {
+      id: 3, title: "Balance Sheet", icon: "fa-scale-balanced",
+      short: "Working capital = –$10,000 (very thin liquidity)",
+      full: `<h3 class="text-2xl font-bold mb-4">Balance Sheet – Dec 31, Year 3</h3>
+        <p><strong>Working Capital:</strong> <span class="text-red-600 font-bold">–$10,000</span></p>
+        <p><strong>Operating line drawn:</strong> $180,000 (60% of limit and trending up)</p>
+        <p><strong>Total Assets:</strong> $8.73 million (mostly land equity)</p>
+        <p class="text-amber-600 mt-6">Classic family farm trap: strong equity, dangerously thin cash.</p>`
+    },
+    {
+      id: 4, title: "Key Ratios", icon: "fa-chart-pie",
+      short: "Current Ratio 0.96x • Profit Margin only 3.9%",
+      full: `<h3 class="text-2xl font-bold mb-4">Key Financial Ratios</h3>
+        <ul class="space-y-4">
+          <li>Current Ratio: <strong class="text-red-600">0.96x</strong> (below 1.0 — watch)</li>
+          <li>Debt/Asset: <strong class="text-emerald-600">0.18</strong> (healthy)</li>
+          <li>Operating Profit Margin: <strong class="text-red-600">3.9%</strong> (concern)</li>
+          <li>Return on Assets: <strong class="text-amber-600">0.7%</strong></li>
+        </ul>`
+    },
+    {
+      id: 5, title: "People & Challenges", icon: "fa-users",
+      short: "Family tension is building",
+      full: `<h3 class="text-2xl font-bold mb-4">The People</h3>
+        <p><strong>Todd (52)</strong> – “I built this farm. I know every field.”</p>
+        <p><strong>Jake (27)</strong> – “I want ownership, not just hired-hand work.”</p>
+        <p><strong>Linda</strong> – “I see how thin it really is every month.”</p>
+        <p><strong>Dale (38)</strong> – Long-time employee who may leave if things don’t change.</p>`
+    }
+  ];
+
+  const questions = [
+    { step: 1, q: "What stands out most to you about Heartland’s financial picture after reviewing the artifacts?", feedback: "Strong teams immediately notice: corn is losing money on a fully-allocated basis, soybeans are carrying the farm, and working capital is negative (–$10K). This is the exact diagnostic moment the simulation wants you to have." },
+    { step: 2, q: "Which enterprise is truly the ‘real business’ right now, and why?", feedback: "The real business is soybeans. Corn is a drag and cattle is only marginally profitable. Many teams defend corn emotionally — exactly the trap the simulation is designed to expose." },
+    { step: 3, q: "Name the three most urgent questions Todd must answer before making any big strategic move.", feedback: "Top answers usually include: 1) Why is corn losing money? 2) Can we afford our current equipment? 3) What is our real succession/ownership plan? These questions drive the rest of the seven decisions." },
+    { step: 4, q: "On a scale of 1–10, how healthy is Heartland Farm Co. financially right now? Why?", feedback: "Most teams rate it 4–6/10. Profitable on paper, but extremely fragile due to negative working capital and poor enterprise mix. This sets up the tension for D2 (capital investment) and D5 (drought crisis)." }
+  ];
+
+  const defaultState = {
+    learner: { name: '', id: '' },
+    startedAt: '',
+    updatedAt: '',
+    completedAt: '',
+    completionCode: '',
+    artifactsViewed: [],
+    answers: {
+      1: { answer: '', submitted: false, finalized: false, submittedAt: '', finalizedAt: '' },
+      2: { answer: '', submitted: false, finalized: false, submittedAt: '', finalizedAt: '' },
+      3: { answer: '', submitted: false, finalized: false, submittedAt: '', finalizedAt: '' },
+      4: { answer: '', submitted: false, finalized: false, submittedAt: '', finalizedAt: '' }
+    }
+  };
+
+  let state = loadState();
+
+  function nowISO(){ return new Date().toISOString(); }
+
+  function clone(obj){ return JSON.parse(JSON.stringify(obj)); }
+
+  function loadState(){
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if(saved) return { ...clone(defaultState), ...JSON.parse(saved) };
+    } catch(e) { console.warn('Could not load saved progress', e); }
+    return clone(defaultState);
+  }
+
+  function saveState(){
+    state.updatedAt = nowISO();
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    updateProgressUI();
+  }
+
+  function getProgressPercent(){
+    const finalized = Object.values(state.answers).filter(a => a.finalized).length;
+    return Math.round((finalized / questions.length) * 100);
+  }
+
+  function getCompletionCode(){
+    const idPart = String(state.learner.id || 'learner').replace(/[^a-zA-Z0-9]/g, '').slice(0, 8).toUpperCase() || 'LEARNER';
+    const datePart = new Date().toISOString().slice(0,10).replace(/-/g, '');
+    const randomPart = Math.random().toString(36).slice(2, 7).toUpperCase();
+    return `HFC-M1-${idPart}-${datePart}-${randomPart}`;
+  }
+
+  function trackingPayload(eventName, detail = {}){
+    return {
+      courseId: COURSE_ID,
+      event: eventName,
+      learner: state.learner,
+      progressPercent: getProgressPercent(),
+      detail,
+      answers: state.answers,
+      artifactsViewed: state.artifactsViewed,
+      completedAt: state.completedAt,
+      completionCode: state.completionCode,
+      pageUrl: window.location.href,
+      userAgent: navigator.userAgent,
+      timestamp: nowISO()
+    };
+  }
+
+  async function trackEvent(eventName, detail = {}){
+    const payload = trackingPayload(eventName, detail);
+    console.log('Tracking event:', payload);
+
+    if(!TRACKING_ENDPOINT){
+      return payload;
+    }
+
+    try {
+      await fetch(TRACKING_ENDPOINT, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      showToast('Progress sent.');
+    } catch(e) {
+      console.warn('Tracking failed. Progress is still saved in this browser.', e);
+      showToast('Cloud tracking failed. Browser save still works.');
+    }
+    return payload;
+  }
+
+  function showToast(message){
+    const toast = document.getElementById('tracker-toast');
+    toast.textContent = message;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2200);
+  }
+
+  function updateProgressUI(){
+    const finalized = Object.values(state.answers).filter(a => a.finalized).length;
+    document.getElementById('answers-complete-display').textContent = finalized;
+    document.getElementById('progress-fill').style.width = `${getProgressPercent()}%`;
+    document.getElementById('learner-display').textContent = state.learner.id ? `Learner: ${state.learner.name || 'Unnamed'} • ${state.learner.id}` : '';
+    document.getElementById('tracking-status').textContent = TRACKING_ENDPOINT
+      ? 'Browser save is active. Cloud tracking endpoint is connected.'
+      : 'Browser save is active. Cloud tracking is not connected yet.';
+
+    if(finalized === questions.length){
+      completeModule(false);
+    }
+  }
+
+  function renderArtifacts() {
+    const grid = document.getElementById('artifacts-grid');
+    grid.innerHTML = artifacts.map(a => {
+      const viewed = state.artifactsViewed.includes(a.id);
+      return `
+        <div onclick="showArtifact(${a.id})" class="artifact-card cursor-pointer bg-white border ${viewed ? 'border-emerald-400' : 'border-gray-200'} hover:border-emerald-400 rounded-3xl p-6 shadow-sm relative">
+          ${viewed ? '<div class="absolute top-3 right-3 text-emerald-600"><i class="fa-solid fa-check-circle"></i></div>' : ''}
+          <div class="text-4xl mb-4 text-emerald-600"><i class="fa-solid ${a.icon}"></i></div>
+          <h4 class="font-semibold text-lg mb-1">${a.title}</h4>
+          <p class="text-sm text-gray-600">${a.short}</p>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function showArtifact(id) {
+    const art = artifacts.find(a => a.id === id);
+    document.getElementById('modal-content').innerHTML = art.full;
+    document.getElementById('artifact-modal').classList.remove('hidden');
+
+    if(!state.artifactsViewed.includes(id)){
+      state.artifactsViewed.push(id);
+      saveState();
+      renderArtifacts();
+    }
+    trackEvent('artifact_viewed', { artifactId: id, artifactTitle: art.title });
+  }
+
+  function closeModal() {
+    document.getElementById('artifact-modal').classList.add('hidden');
+  }
+
+  function renderQuestions() {
+    const container = document.getElementById('questions-container');
+    container.innerHTML = questions.map(q => {
+      const answerState = state.answers[q.step] || defaultState.answers[q.step];
+      const disabled = answerState.finalized ? 'disabled' : '';
+      const statusBadge = answerState.finalized
+        ? '<span class="ml-auto text-sm bg-emerald-100 text-emerald-700 font-bold px-4 py-2 rounded-full">Finalized</span>'
+        : answerState.submitted
+          ? '<span class="ml-auto text-sm bg-amber-100 text-amber-700 font-bold px-4 py-2 rounded-full">Feedback viewed</span>'
+          : '<span class="ml-auto text-sm bg-gray-100 text-gray-600 font-bold px-4 py-2 rounded-full">Draft</span>';
+
+      return `
+        <div id="step-${q.step}" class="bg-white border-2 ${answerState.finalized ? 'border-emerald-300' : 'border-gray-200'} rounded-3xl p-8">
+          <div class="flex items-center gap-4 mb-6">
+            <div class="w-9 h-9 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xl">${q.step}</div>
+            <h3 class="text-2xl font-semibold">Question ${q.step} of 4</h3>
+            ${statusBadge}
+          </div>
+          <p class="text-xl mb-8">${q.q}</p>
+
+          <textarea id="answer-text-${q.step}" rows="5" class="w-full border rounded-3xl p-6 text-lg focus:ring-emerald-300 disabled:bg-gray-50 disabled:text-gray-700" ${disabled}>${escapeHTML(answerState.answer || '')}</textarea>
+
+          <div class="flex flex-col md:flex-row gap-4 mt-8">
+            <button onclick="saveDraft(${q.step})" class="flex-1 py-4 border border-gray-300 hover:bg-gray-100 rounded-3xl font-medium" ${disabled}>Save Draft</button>
+            <button onclick="submitForFeedback(${q.step})" class="flex-1 py-4 bg-emerald-600 hover:bg-emerald-700 text-white text-xl font-semibold rounded-3xl" ${disabled}>Submit for Expert Feedback</button>
+          </div>
+
+          <div id="feedback-area-${q.step}" class="${answerState.submitted || answerState.finalized ? '' : 'hidden'} mt-8">
+            ${answerState.submitted || answerState.finalized ? feedbackBlock(q.step) : ''}
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    questions.forEach(q => {
+      const textarea = document.getElementById(`answer-text-${q.step}`);
+      if(textarea && !state.answers[q.step].finalized){
+        textarea.addEventListener('input', () => {
+          state.answers[q.step].answer = textarea.value;
+          saveState();
+        });
+      }
+    });
+  }
+
+  function feedbackBlock(step){
+    const q = questions.find(x => x.step === step);
+    const answerState = state.answers[step];
+    if(answerState.finalized){
+      return `<div class="text-emerald-600 font-medium flex items-center gap-2"><i class="fa-solid fa-check-circle"></i> Answer finalized for Question ${step}</div>`;
+    }
+    return `
+      <div class="bg-emerald-50 border border-emerald-200 rounded-3xl p-8">
+        <h4 class="font-semibold text-emerald-700 flex items-center gap-2 mb-4"><i class="fa-solid fa-lightbulb"></i> Expert Feedback – Question ${step}</h4>
+        <p class="text-gray-700">${q.feedback}</p>
+
+        <div class="flex flex-col md:flex-row gap-4 mt-8">
+          <button onclick="editAnswer(${step})" class="flex-1 py-4 border border-gray-300 hover:bg-gray-100 rounded-3xl font-medium">✏️ Edit My Answer</button>
+          <button onclick="finalizeAnswer(${step})" class="flex-1 py-4 bg-emerald-700 hover:bg-emerald-800 text-white rounded-3xl font-semibold">Finalize Answer →</button>
+        </div>
+      </div>`;
+  }
+
+  function escapeHTML(str){
+    return String(str || '').replace(/[&<>'"]/g, function(tag){
+      const chars = { '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' };
+      return chars[tag] || tag;
+    });
+  }
+
+  function saveDraft(step){
+    const textarea = document.getElementById(`answer-text-${step}`);
+    state.answers[step].answer = textarea.value.trim();
+    saveState();
+    trackEvent('answer_draft_saved', { step, question: questions.find(q => q.step === step).q, answer: state.answers[step].answer });
+    showToast('Draft saved.');
+  }
+
+  function submitForFeedback(step) {
+    const textarea = document.getElementById(`answer-text-${step}`);
+    const answer = textarea.value.trim();
+    if (!answer) return alert("Please write your answer first.");
+
+    state.answers[step].answer = answer;
+    state.answers[step].submitted = true;
+    state.answers[step].submittedAt = nowISO();
+    saveState();
+
+    const area = document.getElementById(`feedback-area-${step}`);
+    area.innerHTML = feedbackBlock(step);
+    area.classList.remove('hidden');
+    area.scrollIntoView({ behavior: "smooth", block: "center" });
+
+    trackEvent('answer_submitted_for_feedback', { step, question: questions.find(q => q.step === step).q, answer });
+  }
+
+  function editAnswer(step) {
+    const area = document.getElementById(`feedback-area-${step}`);
+    area.classList.add('hidden');
+    trackEvent('answer_edit_requested', { step, question: questions.find(q => q.step === step).q, answer: state.answers[step].answer });
+  }
+
+  function finalizeAnswer(step) {
+    const textarea = document.getElementById(`answer-text-${step}`);
+    const answer = textarea.value.trim();
+    if (!answer) return alert("Please write your answer first.");
+
+    state.answers[step].answer = answer;
+    state.answers[step].submitted = true;
+    state.answers[step].finalized = true;
+    state.answers[step].finalizedAt = nowISO();
+    saveState();
+
+    trackEvent('answer_finalized', { step, question: questions.find(q => q.step === step).q, answer });
+    renderQuestions();
+    const nextUnfinished = questions.find(q => !state.answers[q.step].finalized);
+    if(nextUnfinished){
+      document.getElementById(`step-${nextUnfinished.step}`).scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      completeModule(true);
+    }
+  }
+
+  function completeModule(shouldTrack){
+    if(!state.completionCode){
+      state.completedAt = nowISO();
+      state.completionCode = getCompletionCode();
+      saveState();
+    }
+    document.getElementById('completion-code').textContent = state.completionCode;
+    document.getElementById('completion-panel').classList.remove('hidden');
+    if(shouldTrack){
+      trackEvent('module_completed', { completionCode: state.completionCode, answers: state.answers });
+      document.getElementById('completion-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+
+  function buildExportPayload(){
+    return trackingPayload('manual_json_export', { exportedAt: nowISO() });
+  }
+
+  function downloadJSON(filename){
+    const payload = buildExportPayload();
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    trackEvent('answer_json_downloaded', { filename });
+  }
+
+  function initLearnerGate(){
+    const params = new URLSearchParams(window.location.search);
+    const urlLearner = params.get('learner') || params.get('email') || params.get('id') || '';
+    const urlName = params.get('name') || '';
+
+    if(urlLearner && !state.learner.id) state.learner.id = urlLearner;
+    if(urlName && !state.learner.name) state.learner.name = urlName;
+
+    document.getElementById('learner-name').value = state.learner.name || urlName;
+    document.getElementById('learner-id').value = state.learner.id || urlLearner;
+
+    if(state.learner.id){
+      document.getElementById('learner-gate').classList.add('hidden');
+    }
+  }
+
+  function startActivity(){
+    const name = document.getElementById('learner-name').value.trim();
+    const id = document.getElementById('learner-id').value.trim();
+    if(!id) return alert('Please enter an email or learner ID.');
+
+    state.learner = { name, id };
+    if(!state.startedAt) state.startedAt = nowISO();
+    saveState();
+    document.getElementById('learner-gate').classList.add('hidden');
+    trackEvent('module_started', { startedAt: state.startedAt });
+  }
+
+  function resetProgress(){
+    if(!confirm('Reset saved progress for this activity in this browser?')) return;
+    localStorage.removeItem(STORAGE_KEY);
+    state = clone(defaultState);
+    location.reload();
+  }
+
+  function init() {
+    initLearnerGate();
+    renderArtifacts();
+    renderQuestions();
+    updateProgressUI();
+
+    document.getElementById('start-activity-btn').addEventListener('click', startActivity);
+    document.getElementById('reset-progress-btn').addEventListener('click', resetProgress);
+    document.getElementById('download-json-btn').addEventListener('click', () => downloadJSON('heartland-module-1-answers.json'));
+    document.getElementById('download-final-json-btn').addEventListener('click', () => downloadJSON('heartland-module-1-final-answers.json'));
+    document.getElementById('copy-code-btn').addEventListener('click', async () => {
+      await navigator.clipboard.writeText(state.completionCode || '');
+      showToast('Completion code copied.');
+      trackEvent('completion_code_copied', { completionCode: state.completionCode });
+    });
+
+    if(state.learner.id){
+      trackEvent('module_opened', { resumed: !!state.startedAt, startedAt: state.startedAt });
+    }
+
+    console.log('%c✅ Module 1 tracked version ready!', 'color:#10b981;font-size:18px;font-weight:bold');
+  }
+
+  window.onload = init;
+</script>
+</body>
+</html>
