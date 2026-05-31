@@ -117,7 +117,7 @@
   <div class="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-6 mb-8">
     <div>
       <h1 class="text-4xl font-bold text-emerald-700">Module 1 • Financial Foundation</h1>
-      <p class="text-xl text-gray-600">Day 1 — What do you actually have at Heartland Farm Co.?</p>
+      <p class="text-xl text-gray-600">Day 1 — Diagnose the farm before you recommend a move.</p>
       <p id="learner-display" class="text-sm text-gray-500 mt-2"></p>
     </div>
     <div class="text-left lg:text-right">
@@ -138,10 +138,23 @@
     <button id="download-pdf-btn" class="py-3 px-5 bg-gray-300 text-gray-500 rounded-2xl font-semibold cursor-not-allowed" disabled title="Complete all four questions to download your answer PDF"><i class="fa-solid fa-file-pdf mr-2"></i>Download PDF after completing</button>
   </div>
 
+
+
+  <!-- Case Memo -->
+  <div class="bg-emerald-900 text-white rounded-3xl p-7 mb-8 shadow-sm">
+    <div class="flex items-start gap-4">
+      <div class="w-12 h-12 rounded-2xl bg-white/15 flex items-center justify-center text-2xl shrink-0"><i class="fa-solid fa-magnifying-glass-chart"></i></div>
+      <div>
+        <h2 class="text-2xl font-bold mb-2">Your role: financial diagnosis team</h2>
+        <p class="text-emerald-50 leading-relaxed">Before Todd makes another big decision, your job is to interpret the farm’s financial position like a real advisor would: look past revenue, separate liquidity from equity, identify enterprise-level profitability, and notice the people pressures behind the numbers.</p>
+      </div>
+    </div>
+  </div>
+
   <!-- Artifacts -->
   <div class="mb-12">
-    <h2 class="text-2xl font-semibold mb-6 flex items-center gap-3"><i class="fa-solid fa-folder-open text-emerald-600"></i> Farm Artifacts – Review These First</h2>
-    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6" id="artifacts-grid"></div>
+    <h2 class="text-2xl font-semibold mb-6 flex items-center gap-3"><i class="fa-solid fa-folder-open text-emerald-600"></i> Heartland Case Packet – Review These First</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6" id="artifacts-grid"></div>
   </div>
 
   <!-- Questions -->
@@ -164,7 +177,7 @@
 
 <!-- Artifact Modal -->
 <div id="artifact-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-  <div class="bg-white rounded-3xl max-w-3xl w-full mx-4 max-h-[90vh] overflow-auto">
+  <div class="bg-white rounded-3xl max-w-6xl w-full mx-4 max-h-[90vh] overflow-auto">
     <div class="p-8">
       <button onclick="closeModal()" class="float-right text-3xl text-gray-400 hover:text-gray-600">×</button>
       <div id="modal-content"></div>
@@ -188,61 +201,270 @@
 
   const artifacts = [
     {
-      id: 1, title: "Operation Profile", icon: "fa-tractor",
-      short: "2,400 acres • 120 cow-calf • Todd, Jake, Linda, Dale",
-      full: `<h3 class="text-2xl font-bold mb-4">Operation Profile</h3>
-        <p class="mb-6">West-central Indiana family farm. Todd (52) built it from 800 acres. Jake (27) is back full-time. Linda handles books. Dale has been the right-hand man for 8 years.</p>
-        <ul class="space-y-3 text-sm">
-          <li><strong>2,400 total acres</strong> – 800 owned, 1,000 cash rented, 600 pasture/hay</li>
-          <li><strong>120 head spring-calving cow-calf herd</strong></li>
-          <li><strong>Revenue mix</strong>: Corn 48%, Soybeans 35%, Cattle 13%, Storage 4%</li>
-        </ul>`
+      id: 1,
+      title: "Operation Snapshot",
+      icon: "fa-tractor",
+      short: "2,400 acres • 120 cow-calf pairs • 4 revenue streams",
+      full: `<h3 class="text-3xl font-bold mb-2 text-emerald-700">Operation Snapshot</h3>
+        <p class="text-gray-600 mb-6">Heartland Farm Co. is a west-central Indiana family operation with strong land equity, a mixed crop/livestock model, and growing pressure around liquidity, succession, and enterprise focus.</p>
+        <div class="grid md:grid-cols-2 gap-5 mb-6">
+          <div class="bg-emerald-50 border border-emerald-100 rounded-2xl p-5">
+            <h4 class="font-bold text-emerald-800 mb-3">Land base</h4>
+            <table class="w-full text-sm">
+              <tr><td class="py-2">Owned cropland</td><td class="py-2 text-right font-semibold">800 acres</td></tr>
+              <tr><td class="py-2">Cash-rented cropland</td><td class="py-2 text-right font-semibold">1,000 acres</td></tr>
+              <tr><td class="py-2">Pasture / hay ground</td><td class="py-2 text-right font-semibold">600 acres</td></tr>
+              <tr class="border-t"><td class="py-2 font-bold">Total operated</td><td class="py-2 text-right font-bold">2,400 acres</td></tr>
+            </table>
+          </div>
+          <div class="bg-slate-50 border border-slate-200 rounded-2xl p-5">
+            <h4 class="font-bold text-slate-800 mb-3">Revenue mix, Year 3</h4>
+            <div class="space-y-3 text-sm">
+              <div><div class="flex justify-between"><span>Corn</span><strong>48%</strong></div><div class="h-2 bg-slate-200 rounded"><div class="h-2 bg-amber-500 rounded" style="width:48%"></div></div></div>
+              <div><div class="flex justify-between"><span>Soybeans</span><strong>35%</strong></div><div class="h-2 bg-slate-200 rounded"><div class="h-2 bg-emerald-600 rounded" style="width:35%"></div></div></div>
+              <div><div class="flex justify-between"><span>Cattle</span><strong>13%</strong></div><div class="h-2 bg-slate-200 rounded"><div class="h-2 bg-sky-600 rounded" style="width:13%"></div></div></div>
+              <div><div class="flex justify-between"><span>Storage / custom work</span><strong>4%</strong></div><div class="h-2 bg-slate-200 rounded"><div class="h-2 bg-gray-500 rounded" style="width:4%"></div></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="bg-amber-50 border border-amber-200 rounded-2xl p-5">
+          <h4 class="font-bold text-amber-800 mb-2">Case note</h4>
+          <p class="text-sm text-gray-700">The farm is not failing, but it is fragile. Heartland owns valuable land, has a loyal team, and still generates positive net income. The problem is that the cash position is thin and the least profitable enterprise is consuming the most attention, capital, and working capital.</p>
+        </div>`
     },
     {
-      id: 2, title: "Income Statement (Year 3)", icon: "fa-chart-bar",
-      short: "Corn is LOSING money. Soybeans carry everything.",
-      full: `<h3 class="text-2xl font-bold mb-4">Income Statement – Year 3 Actuals</h3>
-        <p class="text-red-600 font-semibold mb-4">Corn: –$60,200 net (losing money on fully-allocated basis)</p>
-        <p class="text-emerald-600 font-semibold mb-6">Soybeans: +$106,200 net (carrying the farm)</p>
-        <p class="text-emerald-600">Cattle: +$14,600</p>
-        <p class="text-xl font-medium mt-8">Total Net Farm Income: <span class="text-emerald-600">$60,600</span></p>`
+      id: 2,
+      title: "Income Statement",
+      icon: "fa-chart-bar",
+      short: "Three-year trend plus Year 3 enterprise breakdown",
+      full: `<h3 class="text-3xl font-bold mb-2 text-emerald-700">Income Statement — Year 3 Actuals</h3>
+        <p class="text-gray-600 mb-6">Heartland is profitable on paper, but the enterprise mix tells a more complicated story. Soybeans are carrying the farm while corn is negative after full allocation of direct costs, machinery, labor, land, and overhead.</p>
+        <div class="overflow-x-auto rounded-2xl border border-gray-200 mb-6">
+          <table class="w-full text-sm bg-white">
+            <thead class="bg-gray-100 text-gray-700"><tr><th class="text-left p-3">Enterprise</th><th class="text-right p-3">Gross Revenue</th><th class="text-right p-3">Direct Costs</th><th class="text-right p-3">Allocated Overhead</th><th class="text-right p-3">Net Income</th><th class="text-right p-3">Margin</th></tr></thead>
+            <tbody>
+              <tr class="border-t"><td class="p-3 font-semibold">Corn</td><td class="p-3 text-right">$742,000</td><td class="p-3 text-right">$561,400</td><td class="p-3 text-right">$240,800</td><td class="p-3 text-right font-bold text-red-600">−$60,200</td><td class="p-3 text-right text-red-600">−8.1%</td></tr>
+              <tr class="border-t"><td class="p-3 font-semibold">Soybeans</td><td class="p-3 text-right">$541,000</td><td class="p-3 text-right">$286,900</td><td class="p-3 text-right">$147,900</td><td class="p-3 text-right font-bold text-emerald-700">$106,200</td><td class="p-3 text-right text-emerald-700">19.6%</td></tr>
+              <tr class="border-t"><td class="p-3 font-semibold">Cow-calf</td><td class="p-3 text-right">$201,000</td><td class="p-3 text-right">$136,200</td><td class="p-3 text-right">$50,200</td><td class="p-3 text-right font-bold text-emerald-700">$14,600</td><td class="p-3 text-right">7.3%</td></tr>
+              <tr class="border-t"><td class="p-3 font-semibold">Storage / custom work</td><td class="p-3 text-right">$61,000</td><td class="p-3 text-right">$28,800</td><td class="p-3 text-right">$32,200</td><td class="p-3 text-right font-bold">$0</td><td class="p-3 text-right">0.0%</td></tr>
+              <tr class="border-t bg-gray-50"><td class="p-3 font-bold">Total</td><td class="p-3 text-right font-bold">$1,545,000</td><td class="p-3 text-right font-bold">$1,013,300</td><td class="p-3 text-right font-bold">$471,100</td><td class="p-3 text-right font-bold text-emerald-700">$60,600</td><td class="p-3 text-right font-bold">3.9%</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="grid md:grid-cols-3 gap-4">
+          <div class="bg-red-50 border border-red-100 rounded-2xl p-4"><div class="text-xs font-bold text-red-700 uppercase">Warning</div><p class="text-sm mt-1">Corn produces the most revenue but destroys the most value after full allocation.</p></div>
+          <div class="bg-emerald-50 border border-emerald-100 rounded-2xl p-4"><div class="text-xs font-bold text-emerald-700 uppercase">Bright spot</div><p class="text-sm mt-1">Soybeans are profitable enough to hide weaknesses elsewhere.</p></div>
+          <div class="bg-amber-50 border border-amber-100 rounded-2xl p-4"><div class="text-xs font-bold text-amber-700 uppercase">Question</div><p class="text-sm mt-1">Is the farm managing enterprises by tradition or by contribution?</p></div>
+        </div>`
     },
     {
-      id: 3, title: "Balance Sheet", icon: "fa-scale-balanced",
-      short: "Working capital = –$10,000 (very thin liquidity)",
-      full: `<h3 class="text-2xl font-bold mb-4">Balance Sheet – Dec 31, Year 3</h3>
-        <p><strong>Working Capital:</strong> <span class="text-red-600 font-bold">–$10,000</span></p>
-        <p><strong>Operating line drawn:</strong> $180,000 (60% of limit and trending up)</p>
-        <p><strong>Total Assets:</strong> $8.73 million (mostly land equity)</p>
-        <p class="text-amber-600 mt-6">Classic family farm trap: strong equity, dangerously thin cash.</p>`
+      id: 3,
+      title: "Balance Sheet",
+      icon: "fa-scale-balanced",
+      short: "Strong equity, weak working capital, current ratio below 1.0",
+      full: `<h3 class="text-3xl font-bold mb-2 text-emerald-700">Balance Sheet — December 31, Year 3</h3>
+        <p class="text-gray-600 mb-6">This is the classic family-farm tension: Heartland looks wealthy on a net worth basis, but the short-term cash position is stressed.</p>
+        <div class="grid lg:grid-cols-2 gap-6">
+          <div class="overflow-x-auto rounded-2xl border border-gray-200">
+            <table class="w-full text-sm bg-white">
+              <thead class="bg-emerald-50"><tr><th colspan="2" class="text-left p-3 text-emerald-800">Assets</th></tr></thead>
+              <tbody>
+                <tr><td class="p-3 font-semibold" colspan="2">Current assets</td></tr>
+                <tr class="border-t"><td class="p-3">Cash</td><td class="p-3 text-right">$18,000</td></tr>
+                <tr class="border-t"><td class="p-3">Accounts receivable</td><td class="p-3 text-right">$42,000</td></tr>
+                <tr class="border-t"><td class="p-3">Crop inventory</td><td class="p-3 text-right">$155,000</td></tr>
+                <tr class="border-t"><td class="p-3">Feed, hay, supplies</td><td class="p-3 text-right">$43,000</td></tr>
+                <tr class="border-t"><td class="p-3">Prepaid inputs</td><td class="p-3 text-right">$22,000</td></tr>
+                <tr class="border-t bg-gray-50"><td class="p-3 font-bold">Total current assets</td><td class="p-3 text-right font-bold">$280,000</td></tr>
+                <tr><td class="p-3 font-semibold" colspan="2">Non-current assets</td></tr>
+                <tr class="border-t"><td class="p-3">Machinery and equipment, net</td><td class="p-3 text-right">$1,150,000</td></tr>
+                <tr class="border-t"><td class="p-3">Breeding livestock</td><td class="p-3 text-right">$210,000</td></tr>
+                <tr class="border-t"><td class="p-3">Buildings, bins, improvements</td><td class="p-3 text-right">$620,000</td></tr>
+                <tr class="border-t"><td class="p-3">Owned land</td><td class="p-3 text-right">$6,470,000</td></tr>
+                <tr class="border-t bg-emerald-50"><td class="p-3 font-bold">Total assets</td><td class="p-3 text-right font-bold">$8,730,000</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="overflow-x-auto rounded-2xl border border-gray-200">
+            <table class="w-full text-sm bg-white">
+              <thead class="bg-red-50"><tr><th colspan="2" class="text-left p-3 text-red-800">Liabilities & Equity</th></tr></thead>
+              <tbody>
+                <tr><td class="p-3 font-semibold" colspan="2">Current liabilities</td></tr>
+                <tr class="border-t"><td class="p-3">Operating line drawn</td><td class="p-3 text-right">$180,000</td></tr>
+                <tr class="border-t"><td class="p-3">Accounts payable</td><td class="p-3 text-right">$55,000</td></tr>
+                <tr class="border-t"><td class="p-3">Accrued interest / taxes</td><td class="p-3 text-right">$35,000</td></tr>
+                <tr class="border-t"><td class="p-3">Current portion of term debt</td><td class="p-3 text-right">$20,000</td></tr>
+                <tr class="border-t bg-gray-50"><td class="p-3 font-bold">Total current liabilities</td><td class="p-3 text-right font-bold">$290,000</td></tr>
+                <tr><td class="p-3 font-semibold" colspan="2">Long-term liabilities</td></tr>
+                <tr class="border-t"><td class="p-3">Real estate notes</td><td class="p-3 text-right">$980,000</td></tr>
+                <tr class="border-t"><td class="p-3">Machinery notes</td><td class="p-3 text-right">$310,000</td></tr>
+                <tr class="border-t"><td class="p-3">Livestock / facility notes</td><td class="p-3 text-right">$90,000</td></tr>
+                <tr class="border-t bg-gray-50"><td class="p-3 font-bold">Total liabilities</td><td class="p-3 text-right font-bold">$1,670,000</td></tr>
+                <tr class="border-t bg-emerald-50"><td class="p-3 font-bold">Owner equity</td><td class="p-3 text-right font-bold">$7,060,000</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="grid md:grid-cols-3 gap-4 mt-6">
+          <div class="bg-red-50 border border-red-100 rounded-2xl p-4"><div class="text-xs font-bold text-red-700 uppercase">Working capital</div><p class="text-2xl font-bold text-red-600 mt-1">−$10,000</p><p class="text-xs text-gray-600 mt-1">Current assets minus current liabilities.</p></div>
+          <div class="bg-red-50 border border-red-100 rounded-2xl p-4"><div class="text-xs font-bold text-red-700 uppercase">Current ratio</div><p class="text-2xl font-bold text-red-600 mt-1">0.96x</p><p class="text-xs text-gray-600 mt-1">Below 1.0, which limits flexibility.</p></div>
+          <div class="bg-emerald-50 border border-emerald-100 rounded-2xl p-4"><div class="text-xs font-bold text-emerald-700 uppercase">Debt-to-asset</div><p class="text-2xl font-bold text-emerald-700 mt-1">0.19</p><p class="text-xs text-gray-600 mt-1">Solvency is not the immediate issue.</p></div>
+        </div>`
     },
     {
-      id: 4, title: "Key Ratios", icon: "fa-chart-pie",
-      short: "Current Ratio 0.96x • Profit Margin only 3.9%",
-      full: `<h3 class="text-2xl font-bold mb-4">Key Financial Ratios</h3>
-        <ul class="space-y-4">
-          <li>Current Ratio: <strong class="text-red-600">0.96x</strong> (below 1.0 — watch)</li>
-          <li>Debt/Asset: <strong class="text-emerald-600">0.18</strong> (healthy)</li>
-          <li>Operating Profit Margin: <strong class="text-red-600">3.9%</strong> (concern)</li>
-          <li>Return on Assets: <strong class="text-amber-600">0.7%</strong></li>
-        </ul>`
+      id: 4,
+      title: "Cash Flow & Operating Line",
+      icon: "fa-money-bill-trend-up",
+      short: "Line limit $300K • $180K drawn • pressure peaks before planting",
+      full: `<h3 class="text-3xl font-bold mb-2 text-emerald-700">Cash Flow & Operating Line</h3>
+        <p class="text-gray-600 mb-6">The farm has equity, but cash timing is tight. Several ordinary spring expenses hit before new revenue arrives.</p>
+        <div class="overflow-x-auto rounded-2xl border border-gray-200 mb-6">
+          <table class="w-full text-sm bg-white">
+            <thead class="bg-gray-100"><tr><th class="text-left p-3">Period</th><th class="text-right p-3">Expected cash in</th><th class="text-right p-3">Expected cash out</th><th class="text-right p-3">Net cash flow</th><th class="text-right p-3">Projected operating line draw</th></tr></thead>
+            <tbody>
+              <tr class="border-t"><td class="p-3">January–February</td><td class="p-3 text-right">$72,000</td><td class="p-3 text-right">$118,000</td><td class="p-3 text-right text-red-600">−$46,000</td><td class="p-3 text-right">$226,000</td></tr>
+              <tr class="border-t"><td class="p-3">March–April</td><td class="p-3 text-right">$35,000</td><td class="p-3 text-right">$142,000</td><td class="p-3 text-right text-red-600">−$107,000</td><td class="p-3 text-right text-red-600 font-bold">$333,000</td></tr>
+              <tr class="border-t"><td class="p-3">May–June</td><td class="p-3 text-right">$68,000</td><td class="p-3 text-right">$91,000</td><td class="p-3 text-right text-red-600">−$23,000</td><td class="p-3 text-right text-red-600 font-bold">$356,000</td></tr>
+              <tr class="border-t"><td class="p-3">July–August</td><td class="p-3 text-right">$104,000</td><td class="p-3 text-right">$78,000</td><td class="p-3 text-right text-emerald-700">$26,000</td><td class="p-3 text-right">$330,000</td></tr>
+              <tr class="border-t"><td class="p-3">Harvest window</td><td class="p-3 text-right">$445,000</td><td class="p-3 text-right">$221,000</td><td class="p-3 text-right text-emerald-700">$224,000</td><td class="p-3 text-right">$106,000</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="bg-amber-50 border border-amber-200 rounded-2xl p-5">
+          <h4 class="font-bold text-amber-800 mb-2">Bank conversation risk</h4>
+          <p class="text-sm text-gray-700">The operating line limit is $300,000. Without changing timing, selling inventory, delaying a capital purchase, or restructuring debt, the spring projection exceeds the line by roughly $56,000.</p>
+        </div>`
     },
     {
-      id: 5, title: "People & Challenges", icon: "fa-users",
-      short: "Family tension is building",
-      full: `<h3 class="text-2xl font-bold mb-4">The People</h3>
-        <p><strong>Todd (52)</strong> – “I built this farm. I know every field.”</p>
-        <p><strong>Jake (27)</strong> – “I want ownership, not just hired-hand work.”</p>
-        <p><strong>Linda</strong> – “I see how thin it really is every month.”</p>
-        <p><strong>Dale (38)</strong> – Long-time employee who may leave if things don’t change.</p>`
+      id: 5,
+      title: "Enterprise Detail",
+      icon: "fa-seedling",
+      short: "Per-acre view shows why revenue can be misleading",
+      full: `<h3 class="text-3xl font-bold mb-2 text-emerald-700">Enterprise Detail — Corn vs. Soybeans</h3>
+        <p class="text-gray-600 mb-6">Revenue alone makes corn look like the largest business. Contribution and risk tell a different story.</p>
+        <div class="overflow-x-auto rounded-2xl border border-gray-200 mb-6">
+          <table class="w-full text-sm bg-white">
+            <thead class="bg-gray-100"><tr><th class="text-left p-3">Metric</th><th class="text-right p-3">Corn</th><th class="text-right p-3">Soybeans</th></tr></thead>
+            <tbody>
+              <tr class="border-t"><td class="p-3">Acres</td><td class="p-3 text-right">1,100</td><td class="p-3 text-right">700</td></tr>
+              <tr class="border-t"><td class="p-3">Average yield</td><td class="p-3 text-right">184 bu/ac</td><td class="p-3 text-right">57 bu/ac</td></tr>
+              <tr class="border-t"><td class="p-3">Average price received</td><td class="p-3 text-right">$3.67/bu</td><td class="p-3 text-right">$13.56/bu</td></tr>
+              <tr class="border-t"><td class="p-3">Gross revenue / acre</td><td class="p-3 text-right">$675</td><td class="p-3 text-right">$773</td></tr>
+              <tr class="border-t"><td class="p-3">Seed, fertility, chem, crop insurance</td><td class="p-3 text-right">$365</td><td class="p-3 text-right">$238</td></tr>
+              <tr class="border-t"><td class="p-3">Machinery, labor, land, overhead allocation</td><td class="p-3 text-right">$365</td><td class="p-3 text-right">$383</td></tr>
+              <tr class="border-t bg-gray-50"><td class="p-3 font-bold">Net / acre</td><td class="p-3 text-right font-bold text-red-600">−$55</td><td class="p-3 text-right font-bold text-emerald-700">$152</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="text-sm bg-slate-50 border border-slate-200 rounded-2xl p-5"><strong>Interpretation:</strong> Corn may still matter for rotation, feed, local knowledge, and relationship history. But if the farm treats corn as the default centerpiece without understanding cost structure, it will keep draining liquidity.</p>`
+    },
+    {
+      id: 6,
+      title: "Machinery & Debt",
+      icon: "fa-screwdriver-wrench",
+      short: "Useful fleet, but fixed costs are heavy for current profit",
+      full: `<h3 class="text-3xl font-bold mb-2 text-emerald-700">Machinery, Fixed Costs & Debt Schedule</h3>
+        <p class="text-gray-600 mb-6">The farm is equipped to run efficiently, but machinery ownership creates fixed obligations that do not shrink when margins tighten.</p>
+        <div class="overflow-x-auto rounded-2xl border border-gray-200 mb-6">
+          <table class="w-full text-sm bg-white">
+            <thead class="bg-gray-100"><tr><th class="text-left p-3">Item</th><th class="text-right p-3">Book value</th><th class="text-right p-3">Annual payment</th><th class="text-left p-3">Notes</th></tr></thead>
+            <tbody>
+              <tr class="border-t"><td class="p-3">Combine + heads</td><td class="p-3 text-right">$420,000</td><td class="p-3 text-right">$68,000</td><td class="p-3">Reliable, but repair costs rose sharply last season.</td></tr>
+              <tr class="border-t"><td class="p-3">Planter</td><td class="p-3 text-right">$185,000</td><td class="p-3 text-right">$31,000</td><td class="p-3">Jake wants precision upgrades before next season.</td></tr>
+              <tr class="border-t"><td class="p-3">Main tractor</td><td class="p-3 text-right">$310,000</td><td class="p-3 text-right">$52,000</td><td class="p-3">Needed for spring workload.</td></tr>
+              <tr class="border-t"><td class="p-3">Livestock equipment</td><td class="p-3 text-right">$95,000</td><td class="p-3 text-right">$14,000</td><td class="p-3">Functional but aging.</td></tr>
+              <tr class="border-t bg-gray-50"><td class="p-3 font-bold">Total</td><td class="p-3 text-right font-bold">$1,010,000</td><td class="p-3 text-right font-bold">$165,000</td><td class="p-3">Payments exceed Year 3 net farm income.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="bg-red-50 border border-red-100 rounded-2xl p-5"><h4 class="font-bold text-red-700 mb-2">Decision tension</h4><p class="text-sm text-gray-700">Jake argues that technology upgrades could improve execution. Linda argues that every new payment makes the spring cash crunch worse. Todd worries that delaying replacement may lead to downtime during planting or harvest.</p></div>`
+    },
+    {
+      id: 7,
+      title: "People Profiles",
+      icon: "fa-users",
+      short: "Each person sees a different version of the same farm",
+      full: `<h3 class="text-3xl font-bold mb-2 text-emerald-700">People Profiles & Human Dynamics</h3>
+        <p class="text-gray-600 mb-6">The financial problem is also a people problem. Each stakeholder is rational from their own seat.</p>
+        <div class="grid md:grid-cols-2 gap-5">
+          <div class="bg-white border border-gray-200 rounded-2xl p-5"><h4 class="font-bold text-lg">Todd Miller, 52 — Owner/operator</h4><p class="text-sm text-gray-700 mt-2">Built Heartland from 800 acres. Proud of corn yields and relationships with landlords. Makes decisions quickly and values loyalty. He sees negative working capital as a timing issue, not a strategic warning.</p><p class="text-sm mt-3"><strong>Private concern:</strong> He wants Jake to stay, but is not ready to give up control or disclose how tight the cash position is.</p></div>
+          <div class="bg-white border border-gray-200 rounded-2xl p-5"><h4 class="font-bold text-lg">Linda Miller, 51 — Books / cash manager</h4><p class="text-sm text-gray-700 mt-2">Handles bills, payroll, loan paperwork, and vendor relationships. She knows which checks get delayed and which conversations are becoming uncomfortable.</p><p class="text-sm mt-3"><strong>Private concern:</strong> The farm looks successful from the road, but she sees the operating line climb every spring.</p></div>
+          <div class="bg-white border border-gray-200 rounded-2xl p-5"><h4 class="font-bold text-lg">Jake Miller, 27 — Next generation</h4><p class="text-sm text-gray-700 mt-2">Returned after working for a seed dealer. Wants clearer roles, data-driven decisions, and a path to ownership. He is frustrated that he is expected to work like an owner but is paid like an employee.</p><p class="text-sm mt-3"><strong>Private concern:</strong> He may leave if there is no timeline for responsibility, compensation, or equity.</p></div>
+          <div class="bg-white border border-gray-200 rounded-2xl p-5"><h4 class="font-bold text-lg">Dale Reyes, 38 — Key employee</h4><p class="text-sm text-gray-700 mt-2">Has been with the farm for 8 years. Knows the equipment, cattle, and landlords. He is steady during busy seasons and quietly keeps things moving.</p><p class="text-sm mt-3"><strong>Private concern:</strong> A local co-op has offered him more predictable hours and benefits.</p></div>
+        </div>`
+    },
+    {
+      id: 8,
+      title: "Land & Rental Risk",
+      icon: "fa-map-location-dot",
+      short: "1,000 rented acres • two leases renew soon • rent is rising",
+      full: `<h3 class="text-3xl font-bold mb-2 text-emerald-700">Land Base & Rental Risk</h3>
+        <p class="text-gray-600 mb-6">Heartland’s scale depends on rented acres, and rented acres depend on relationships, reputation, and cash reliability.</p>
+        <div class="overflow-x-auto rounded-2xl border border-gray-200 mb-6">
+          <table class="w-full text-sm bg-white">
+            <thead class="bg-gray-100"><tr><th class="text-left p-3">Land group</th><th class="text-right p-3">Acres</th><th class="text-right p-3">Rent / acre</th><th class="text-left p-3">Renewal risk</th></tr></thead>
+            <tbody>
+              <tr class="border-t"><td class="p-3">North rented farms</td><td class="p-3 text-right">420</td><td class="p-3 text-right">$275</td><td class="p-3">Renewal this winter; landlord expects a rate increase.</td></tr>
+              <tr class="border-t"><td class="p-3">Creek bottom farms</td><td class="p-3 text-right">310</td><td class="p-3 text-right">$235</td><td class="p-3">High yield potential, but flood-prone.</td></tr>
+              <tr class="border-t"><td class="p-3">Miller family owned ground</td><td class="p-3 text-right">800</td><td class="p-3 text-right">N/A</td><td class="p-3">Strongest equity base; emotionally important.</td></tr>
+              <tr class="border-t"><td class="p-3">Pasture / hay</td><td class="p-3 text-right">600</td><td class="p-3 text-right">Mixed</td><td class="p-3">Supports cattle but limits crop flexibility.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="text-sm bg-amber-50 border border-amber-200 rounded-2xl p-5"><strong>Real-life complexity:</strong> Dropping rented corn acres may improve financials, but it could damage landlord relationships, reduce scale, and create awkward family conversations about what Heartland is trying to become.</p>`
+    },
+    {
+      id: 9,
+      title: "Banker's Notes",
+      icon: "fa-building-columns",
+      short: "The bank is supportive but wants a plan before spring renewal",
+      full: `<h3 class="text-3xl font-bold mb-2 text-emerald-700">Banker Notes — Operating Line Renewal</h3>
+        <p class="text-gray-600 mb-6">These notes were prepared after Linda’s Year 3 financial packet was reviewed by the lender.</p>
+        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-6 space-y-4 text-sm">
+          <p><strong>Relationship:</strong> Long-term customer. Strong collateral position. No history of missed payments.</p>
+          <p><strong>Primary concern:</strong> Working capital has declined for three straight years, from $145,000 to $68,000 to −$10,000.</p>
+          <p><strong>Secondary concern:</strong> Operating line utilization is rising earlier in the season and remaining elevated longer.</p>
+          <p><strong>Renewal condition likely:</strong> Updated cash flow plan, enterprise budget review, and explanation of any major capital purchases before planting.</p>
+          <p><strong>Banker comment:</strong> “The equity is there. The question is whether the business model is generating enough cash to support the acres, equipment, family living, and transition plan.”</p>
+        </div>`
+    },
+    {
+      id: 10,
+      title: "Decision Brief",
+      icon: "fa-clipboard-list",
+      short: "What Todd must clarify before making the next big move",
+      full: `<h3 class="text-3xl font-bold mb-2 text-emerald-700">Decision Brief — Before the Next Move</h3>
+        <p class="text-gray-600 mb-6">Todd wants to decide quickly on next season’s crop plan, a planter upgrade, and Jake’s role. The numbers suggest he should slow down and answer a few questions first.</p>
+        <div class="grid md:grid-cols-3 gap-4 mb-6">
+          <div class="bg-red-50 border border-red-100 rounded-2xl p-5"><h4 class="font-bold text-red-700 mb-2">1. Enterprise truth</h4><p class="text-sm">Is corn actually strategic, or is Heartland protecting a tradition that no longer pays?</p></div>
+          <div class="bg-amber-50 border border-amber-100 rounded-2xl p-5"><h4 class="font-bold text-amber-700 mb-2">2. Cash discipline</h4><p class="text-sm">What must change so the operating line does not exceed its limit before summer?</p></div>
+          <div class="bg-sky-50 border border-sky-100 rounded-2xl p-5"><h4 class="font-bold text-sky-700 mb-2">3. People plan</h4><p class="text-sm">How will Todd keep Jake and Dale engaged without promising what the business cannot afford?</p></div>
+        </div>
+        <p class="text-sm bg-white border border-gray-200 rounded-2xl p-5"><strong>Facilitator lens:</strong> The strongest learner responses will avoid simple “corn bad, soybeans good” conclusions. Better answers will connect enterprise profitability, cash timing, equipment obligations, land relationships, and family transition.</p>`
     }
   ];
 
   const questions = [
-    { step: 1, q: "What stands out most to you about Heartland’s financial picture after reviewing the artifacts?", feedback: "Strong teams immediately notice: corn is losing money on a fully-allocated basis, soybeans are carrying the farm, and working capital is negative (–$10K). This is the exact diagnostic moment the simulation wants you to have." },
-    { step: 2, q: "Which enterprise is truly the ‘real business’ right now, and why?", feedback: "The real business is soybeans. Corn is a drag and cattle is only marginally profitable. Many teams defend corn emotionally — exactly the trap the simulation is designed to expose." },
-    { step: 3, q: "Name the three most urgent questions Todd must answer before making any big strategic move.", feedback: "Top answers usually include: 1) Why is corn losing money? 2) Can we afford our current equipment? 3) What is our real succession/ownership plan? These questions drive the rest of the seven decisions." },
-    { step: 4, q: "On a scale of 1–10, how healthy is Heartland Farm Co. financially right now? Why?", feedback: "Most teams rate it 4–6/10. Profitable on paper, but extremely fragile due to negative working capital and poor enterprise mix. This sets up the tension for D2 (capital investment) and D5 (drought crisis)." }
+    {
+      step: 1,
+      q: "After reviewing the case packet, what are the three strongest signals that Heartland is financially fragile even though it has strong equity?",
+      feedback: "Strong responses usually separate solvency from liquidity. Heartland has strong owner equity and a low debt-to-asset ratio, but the warning signals are short-term: negative working capital, a current ratio below 1.0, rising operating line use, and a spring cash-flow projection that could exceed the line limit. The key insight is that a farm can look wealthy on a balance sheet and still be under real cash pressure."
+    },
+    {
+      step: 2,
+      q: "Which enterprise is creating the most economic value right now, and which enterprise is creating the most financial drag? Use numbers from the artifacts to explain your answer.",
+      feedback: "The strongest answer points to soybeans as the current value creator and corn as the financial drag. Soybeans generate about $106,200 of net income and roughly $152 per acre, while corn loses about $60,200 and roughly $55 per acre after full allocation. A great answer also notes that corn still may have rotational, relationship, or operational reasons to exist — but those reasons need to be named and tested instead of assumed."
+    },
+    {
+      step: 3,
+      q: "What are the three most urgent questions Todd should answer before approving a planter upgrade, renewing rented acres, or promising Jake a bigger ownership role?",
+      feedback: "Top answers usually include: 1) What is the real enterprise-level profitability, especially for corn? 2) What cash-flow plan keeps the operating line within its limit before summer? 3) What succession and labor plan can the business actually afford? Strong answers connect the financial and human sides: Jake’s future, Dale’s retention risk, Linda’s cash concerns, and Todd’s identity as the builder of the farm."
+    },
+    {
+      step: 4,
+      q: "On a scale of 1–10, how healthy is Heartland Farm Co. right now? Defend your rating with both financial evidence and people/business evidence.",
+      feedback: "Most strong teams land around 4–6 out of 10. Heartland is not failing because it has land equity, positive net income, a supportive lender, and valuable people. But it is fragile because liquidity is negative, corn is destroying value, machinery payments are heavy relative to profit, spring cash flow may exceed the operating line, and family/employee expectations are unresolved. A high-quality answer avoids extremes and explains the tradeoff."
+    }
   ];
 
   function blankAnswer(){
