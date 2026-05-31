@@ -23,6 +23,68 @@
       transform: translateY(0);
       opacity: 1;
     }
+
+    #answer-print-area { display: none; }
+
+    @media print {
+      body * { visibility: hidden !important; }
+      #answer-print-area, #answer-print-area * { visibility: visible !important; }
+      #answer-print-area {
+        display: block !important;
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        padding: 32px;
+        background: white;
+        color: #111827;
+        font-family: Arial, Helvetica, sans-serif;
+      }
+      #answer-print-area h1 {
+        font-size: 28px;
+        color: #047857;
+        margin: 0 0 6px;
+      }
+      #answer-print-area .print-subtitle {
+        color: #4b5563;
+        margin: 0 0 18px;
+      }
+      #answer-print-area .print-meta {
+        border: 1px solid #d1d5db;
+        border-radius: 14px;
+        padding: 14px;
+        margin-bottom: 18px;
+        font-size: 13px;
+      }
+      #answer-print-area .print-question {
+        page-break-inside: avoid;
+        border-top: 2px solid #d1fae5;
+        padding-top: 18px;
+        margin-top: 18px;
+      }
+      #answer-print-area h2 {
+        font-size: 18px;
+        color: #065f46;
+        margin: 0 0 8px;
+      }
+      #answer-print-area .print-label {
+        font-weight: 700;
+        color: #374151;
+        margin: 12px 0 4px;
+      }
+      #answer-print-area .print-box {
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 12px;
+        white-space: pre-wrap;
+        line-height: 1.45;
+      }
+      #answer-print-area .print-footer {
+        margin-top: 24px;
+        font-size: 12px;
+        color: #6b7280;
+      }
+    }
   </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -72,9 +134,8 @@
     <div>
       <h2 class="font-bold text-gray-800 flex items-center gap-2"><i class="fa-solid fa-cloud-arrow-up text-emerald-600"></i> Response tracking</h2>
       <p id="tracking-status" class="text-sm text-gray-600 mt-1">Browser save is active. Cloud tracking is not connected yet.</p>
-      <p class="text-xs text-amber-700 mt-2"><i class="fa-solid fa-lock mr-1"></i>Integrity mode: learners must lock their original answer before expert feedback appears.</p>
     </div>
-    <button id="download-json-btn" class="py-3 px-5 bg-gray-900 hover:bg-gray-800 text-white rounded-2xl font-semibold"><i class="fa-solid fa-download mr-2"></i>Download answer JSON</button>
+    <button id="download-pdf-btn" class="py-3 px-5 bg-gray-900 hover:bg-gray-800 text-white rounded-2xl font-semibold"><i class="fa-solid fa-file-pdf mr-2"></i>Download PDF with answers</button>
   </div>
 
   <!-- Artifacts -->
@@ -96,7 +157,7 @@
     </div>
     <div class="flex flex-wrap gap-3">
       <button id="copy-code-btn" class="py-3 px-5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-2xl font-semibold"><i class="fa-solid fa-copy mr-2"></i>Copy completion code</button>
-      <button id="download-final-json-btn" class="py-3 px-5 bg-gray-900 hover:bg-gray-800 text-white rounded-2xl font-semibold"><i class="fa-solid fa-file-code mr-2"></i>Download final JSON</button>
+      <button id="download-final-pdf-btn" class="py-3 px-5 bg-gray-900 hover:bg-gray-800 text-white rounded-2xl font-semibold"><i class="fa-solid fa-file-pdf mr-2"></i>Download PDF with answers</button>
     </div>
   </div>
 </div>
@@ -112,6 +173,8 @@
 </div>
 
 <div id="tracker-toast" class="tracker-toast bg-slate-900 text-white rounded-2xl shadow-xl py-3 px-5 text-sm"></div>
+
+<section id="answer-print-area" aria-hidden="true"></section>
 
 <script>
   // =========================================================
@@ -548,21 +611,62 @@
   }
 
   function buildExportPayload(){
-    return trackingPayload('manual_json_export', { exportedAt: nowISO() });
+    return trackingPayload('manual_export', { exportedAt: nowISO() });
   }
 
-  function downloadJSON(filename){
-    const payload = buildExportPayload();
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-    trackEvent('answer_json_downloaded', { filename });
+  function formatPrintDate(value){
+    if(!value) return '';
+    try { return new Date(value).toLocaleString(); } catch(e) { return value; }
+  }
+
+  function buildAnswersPDF(){
+    const printArea = document.getElementById('answer-print-area');
+    const finalizedCount = questions.filter(q => state.answers[q.step] && state.answers[q.step].finalized).length;
+    const completionCode = state.completionCode || (finalizedCount === questions.length ? getCompletionCode() : 'Not completed yet');
+
+    const questionHTML = questions.map(q => {
+      const answer = state.answers[q.step] || {};
+      const initialAnswer = answer.initialAnswer || answer.answer || 'No locked answer yet.';
+      const reflection = answer.reflection || 'No post-feedback reflection yet.';
+      const lockedAt = answer.lockedAt ? formatPrintDate(answer.lockedAt) : 'Not locked yet';
+      const finalizedAt = answer.finalizedAt ? formatPrintDate(answer.finalizedAt) : 'Not finalized yet';
+
+      return `
+        <div class="print-question">
+          <h2>Question ${q.step} of ${questions.length}</h2>
+          <p><strong>${escapeHTML(q.q)}</strong></p>
+          <div class="print-label">Locked initial answer</div>
+          <div class="print-box">${escapeHTML(initialAnswer)}</div>
+          <div class="print-label">Post-feedback reflection</div>
+          <div class="print-box">${escapeHTML(reflection)}</div>
+          <div class="print-label">Expert feedback shown</div>
+          <div class="print-box">${escapeHTML(q.feedback)}</div>
+          <p style="font-size:12px;color:#6b7280;margin-top:8px;">Locked: ${escapeHTML(lockedAt)} · Finalized: ${escapeHTML(finalizedAt)}</p>
+        </div>`;
+    }).join('');
+
+    printArea.innerHTML = `
+      <h1>Module 1 • Financial Foundation</h1>
+      <p class="print-subtitle">Heartland Farm Co. learner answer summary</p>
+      <div class="print-meta">
+        <p><strong>Learner:</strong> ${escapeHTML(state.learner.name || 'Not provided')}</p>
+        <p><strong>Email / Learner ID:</strong> ${escapeHTML(state.learner.id || 'Not provided')}</p>
+        <p><strong>Progress:</strong> ${finalizedCount} of ${questions.length} answers finalized</p>
+        <p><strong>Completion code:</strong> ${escapeHTML(completionCode)}</p>
+        <p><strong>Generated:</strong> ${escapeHTML(formatPrintDate(nowISO()))}</p>
+      </div>
+      ${questionHTML}
+      <div class="print-footer">Generated from the Heartland Farm Co. Module 1 interactive activity.</div>
+    `;
+  }
+
+  function downloadAnswersPDF(){
+    buildAnswersPDF();
+    trackEvent('answers_pdf_downloaded', {
+      finalizedAnswers: questions.filter(q => state.answers[q.step] && state.answers[q.step].finalized).length,
+      completionCode: state.completionCode || ''
+    });
+    window.print();
   }
 
   function initLearnerGate(){
@@ -608,8 +712,8 @@
 
     document.getElementById('start-activity-btn').addEventListener('click', startActivity);
     document.getElementById('reset-progress-btn').addEventListener('click', resetProgress);
-    document.getElementById('download-json-btn').addEventListener('click', () => downloadJSON('heartland-module-1-answers.json'));
-    document.getElementById('download-final-json-btn').addEventListener('click', () => downloadJSON('heartland-module-1-final-answers.json'));
+    document.getElementById('download-pdf-btn').addEventListener('click', downloadAnswersPDF);
+    document.getElementById('download-final-pdf-btn').addEventListener('click', downloadAnswersPDF);
     document.getElementById('copy-code-btn').addEventListener('click', async () => {
       await navigator.clipboard.writeText(state.completionCode || '');
       showToast('Completion code copied.');
