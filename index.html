@@ -72,6 +72,7 @@
     <div>
       <h2 class="font-bold text-gray-800 flex items-center gap-2"><i class="fa-solid fa-cloud-arrow-up text-emerald-600"></i> Response tracking</h2>
       <p id="tracking-status" class="text-sm text-gray-600 mt-1">Browser save is active. Cloud tracking is not connected yet.</p>
+      <p class="text-xs text-amber-700 mt-2"><i class="fa-solid fa-lock mr-1"></i>Integrity mode: learners must lock their original answer before expert feedback appears.</p>
     </div>
     <button id="download-json-btn" class="py-3 px-5 bg-gray-900 hover:bg-gray-800 text-white rounded-2xl font-semibold"><i class="fa-solid fa-download mr-2"></i>Download answer JSON</button>
   </div>
@@ -120,7 +121,7 @@
   // =========================================================
   const TRACKING_ENDPOINT = '';
   const COURSE_ID = 'heartland-module-1-financial-foundation';
-  const STORAGE_KEY = 'heartland_module_1_tracking_v1';
+  const STORAGE_KEY = 'heartland_module_1_tracking_v2_integrity';
 
   const artifacts = [
     {
@@ -181,6 +182,19 @@
     { step: 4, q: "On a scale of 1–10, how healthy is Heartland Farm Co. financially right now? Why?", feedback: "Most teams rate it 4–6/10. Profitable on paper, but extremely fragile due to negative working capital and poor enterprise mix. This sets up the tension for D2 (capital investment) and D5 (drought crisis)." }
   ];
 
+  function blankAnswer(){
+    return {
+      answer: '',              // current draft before locking
+      initialAnswer: '',       // locked pre-feedback answer
+      reflection: '',          // post-feedback reflection / revision note
+      submitted: false,        // feedback has been unlocked
+      finalized: false,
+      submittedAt: '',
+      finalizedAt: '',
+      feedbackViewedAt: ''
+    };
+  }
+
   const defaultState = {
     learner: { name: '', id: '' },
     startedAt: '',
@@ -189,10 +203,10 @@
     completionCode: '',
     artifactsViewed: [],
     answers: {
-      1: { answer: '', submitted: false, finalized: false, submittedAt: '', finalizedAt: '' },
-      2: { answer: '', submitted: false, finalized: false, submittedAt: '', finalizedAt: '' },
-      3: { answer: '', submitted: false, finalized: false, submittedAt: '', finalizedAt: '' },
-      4: { answer: '', submitted: false, finalized: false, submittedAt: '', finalizedAt: '' }
+      1: blankAnswer(),
+      2: blankAnswer(),
+      3: blankAnswer(),
+      4: blankAnswer()
     }
   };
 
@@ -202,10 +216,31 @@
 
   function clone(obj){ return JSON.parse(JSON.stringify(obj)); }
 
+  function normalizeAnswer(savedAnswer){
+    const base = blankAnswer();
+    const merged = { ...base, ...(savedAnswer || {}) };
+    // Backward compatibility with the previous tracked version.
+    if(!merged.initialAnswer && merged.answer && merged.submitted){
+      merged.initialAnswer = merged.answer;
+    }
+    return merged;
+  }
+
+  function normalizeState(savedState){
+    const merged = { ...clone(defaultState), ...(savedState || {}) };
+    merged.learner = { ...defaultState.learner, ...(savedState?.learner || {}) };
+    merged.artifactsViewed = Array.isArray(savedState?.artifactsViewed) ? savedState.artifactsViewed : [];
+    merged.answers = {};
+    questions.forEach(q => {
+      merged.answers[q.step] = normalizeAnswer(savedState?.answers?.[q.step]);
+    });
+    return merged;
+  }
+
   function loadState(){
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
-      if(saved) return { ...clone(defaultState), ...JSON.parse(saved) };
+      if(saved) return normalizeState(JSON.parse(saved));
     } catch(e) { console.warn('Could not load saved progress', e); }
     return clone(defaultState);
   }
@@ -324,32 +359,40 @@
   function renderQuestions() {
     const container = document.getElementById('questions-container');
     container.innerHTML = questions.map(q => {
-      const answerState = state.answers[q.step] || defaultState.answers[q.step];
-      const disabled = answerState.finalized ? 'disabled' : '';
+      const answerState = state.answers[q.step] || blankAnswer();
+      const isLocked = answerState.submitted || answerState.finalized;
       const statusBadge = answerState.finalized
         ? '<span class="ml-auto text-sm bg-emerald-100 text-emerald-700 font-bold px-4 py-2 rounded-full">Finalized</span>'
         : answerState.submitted
-          ? '<span class="ml-auto text-sm bg-amber-100 text-amber-700 font-bold px-4 py-2 rounded-full">Feedback viewed</span>'
+          ? '<span class="ml-auto text-sm bg-amber-100 text-amber-700 font-bold px-4 py-2 rounded-full"><i class="fa-solid fa-lock mr-1"></i>Initial answer locked</span>'
           : '<span class="ml-auto text-sm bg-gray-100 text-gray-600 font-bold px-4 py-2 rounded-full">Draft</span>';
 
+      const draftArea = !isLocked ? `
+        <label for="answer-text-${q.step}" class="block text-sm font-bold text-gray-700 mb-2">Your initial answer</label>
+        <textarea id="answer-text-${q.step}" rows="5" class="w-full border rounded-3xl p-6 text-lg focus:ring-emerald-300">${escapeHTML(answerState.answer || '')}</textarea>
+        <p class="text-sm text-amber-700 mt-3"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Once you view expert feedback, this initial answer will be locked and tracked. You can still add a reflection afterward.</p>
+        <div class="flex flex-col md:flex-row gap-4 mt-8">
+          <button onclick="saveDraft(${q.step})" class="flex-1 py-4 border border-gray-300 hover:bg-gray-100 rounded-3xl font-medium">Save Draft</button>
+          <button onclick="submitForFeedback(${q.step})" class="flex-1 py-4 bg-emerald-600 hover:bg-emerald-700 text-white text-xl font-semibold rounded-3xl"><i class="fa-solid fa-lock mr-2"></i>Lock Answer & View Expert Feedback</button>
+        </div>
+      ` : `
+        <div class="bg-gray-50 border border-gray-200 rounded-3xl p-6">
+          <div class="text-xs uppercase tracking-wide font-bold text-gray-500 mb-2">Locked initial answer</div>
+          <p class="text-gray-800 whitespace-pre-wrap">${escapeHTML(answerState.initialAnswer || answerState.answer || '')}</p>
+        </div>
+      `;
+
       return `
-        <div id="step-${q.step}" class="bg-white border-2 ${answerState.finalized ? 'border-emerald-300' : 'border-gray-200'} rounded-3xl p-8">
+        <div id="step-${q.step}" class="bg-white border-2 ${answerState.finalized ? 'border-emerald-300' : isLocked ? 'border-amber-300' : 'border-gray-200'} rounded-3xl p-8">
           <div class="flex items-center gap-4 mb-6">
             <div class="w-9 h-9 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xl">${q.step}</div>
             <h3 class="text-2xl font-semibold">Question ${q.step} of 4</h3>
             ${statusBadge}
           </div>
           <p class="text-xl mb-8">${q.q}</p>
-
-          <textarea id="answer-text-${q.step}" rows="5" class="w-full border rounded-3xl p-6 text-lg focus:ring-emerald-300 disabled:bg-gray-50 disabled:text-gray-700" ${disabled}>${escapeHTML(answerState.answer || '')}</textarea>
-
-          <div class="flex flex-col md:flex-row gap-4 mt-8">
-            <button onclick="saveDraft(${q.step})" class="flex-1 py-4 border border-gray-300 hover:bg-gray-100 rounded-3xl font-medium" ${disabled}>Save Draft</button>
-            <button onclick="submitForFeedback(${q.step})" class="flex-1 py-4 bg-emerald-600 hover:bg-emerald-700 text-white text-xl font-semibold rounded-3xl" ${disabled}>Submit for Expert Feedback</button>
-          </div>
-
-          <div id="feedback-area-${q.step}" class="${answerState.submitted || answerState.finalized ? '' : 'hidden'} mt-8">
-            ${answerState.submitted || answerState.finalized ? feedbackBlock(q.step) : ''}
+          ${draftArea}
+          <div id="feedback-area-${q.step}" class="${isLocked ? '' : 'hidden'} mt-8">
+            ${isLocked ? feedbackBlock(q.step) : ''}
           </div>
         </div>
       `;
@@ -357,9 +400,17 @@
 
     questions.forEach(q => {
       const textarea = document.getElementById(`answer-text-${q.step}`);
-      if(textarea && !state.answers[q.step].finalized){
+      if(textarea && !state.answers[q.step].submitted && !state.answers[q.step].finalized){
         textarea.addEventListener('input', () => {
           state.answers[q.step].answer = textarea.value;
+          saveState();
+        });
+      }
+
+      const reflection = document.getElementById(`reflection-text-${q.step}`);
+      if(reflection && !state.answers[q.step].finalized){
+        reflection.addEventListener('input', () => {
+          state.answers[q.step].reflection = reflection.value;
           saveState();
         });
       }
@@ -370,16 +421,25 @@
     const q = questions.find(x => x.step === step);
     const answerState = state.answers[step];
     if(answerState.finalized){
-      return `<div class="text-emerald-600 font-medium flex items-center gap-2"><i class="fa-solid fa-check-circle"></i> Answer finalized for Question ${step}</div>`;
+      return `
+        <div class="bg-emerald-50 border border-emerald-200 rounded-3xl p-8">
+          <div class="text-emerald-700 font-semibold flex items-center gap-2 mb-4"><i class="fa-solid fa-check-circle"></i> Answer finalized for Question ${step}</div>
+          <div class="text-xs uppercase tracking-wide font-bold text-gray-500 mb-2">Your post-feedback reflection</div>
+          <p class="text-gray-700 whitespace-pre-wrap">${escapeHTML(answerState.reflection || 'No reflection added.')}</p>
+        </div>`;
     }
     return `
       <div class="bg-emerald-50 border border-emerald-200 rounded-3xl p-8">
         <h4 class="font-semibold text-emerald-700 flex items-center gap-2 mb-4"><i class="fa-solid fa-lightbulb"></i> Expert Feedback – Question ${step}</h4>
-        <p class="text-gray-700">${q.feedback}</p>
+        <p class="text-gray-700 mb-6">${q.feedback}</p>
+
+        <label for="reflection-text-${step}" class="block text-sm font-bold text-gray-700 mb-2">After reading the expert feedback, what would you add, revise, or watch for?</label>
+        <textarea id="reflection-text-${step}" rows="4" class="w-full border rounded-3xl p-5 text-lg focus:ring-emerald-300" placeholder="Do not rewrite your original answer. Add a short reflection on what changed in your thinking.">${escapeHTML(answerState.reflection || '')}</textarea>
+        <p class="text-sm text-gray-600 mt-3">Your original answer stays locked. This reflection is tracked separately so the instructor can see both your first thinking and your learning after feedback.</p>
 
         <div class="flex flex-col md:flex-row gap-4 mt-8">
-          <button onclick="editAnswer(${step})" class="flex-1 py-4 border border-gray-300 hover:bg-gray-100 rounded-3xl font-medium">✏️ Edit My Answer</button>
-          <button onclick="finalizeAnswer(${step})" class="flex-1 py-4 bg-emerald-700 hover:bg-emerald-800 text-white rounded-3xl font-semibold">Finalize Answer →</button>
+          <button onclick="saveReflection(${step})" class="flex-1 py-4 border border-gray-300 hover:bg-gray-100 rounded-3xl font-medium">Save Reflection</button>
+          <button onclick="finalizeAnswer(${step})" class="flex-1 py-4 bg-emerald-700 hover:bg-emerald-800 text-white rounded-3xl font-semibold">Finalize & Continue →</button>
         </div>
       </div>`;
   }
@@ -393,6 +453,7 @@
 
   function saveDraft(step){
     const textarea = document.getElementById(`answer-text-${step}`);
+    if(!textarea) return;
     state.answers[step].answer = textarea.value.trim();
     saveState();
     trackEvent('answer_draft_saved', { step, question: questions.find(q => q.step === step).q, answer: state.answers[step].answer });
@@ -401,40 +462,68 @@
 
   function submitForFeedback(step) {
     const textarea = document.getElementById(`answer-text-${step}`);
-    const answer = textarea.value.trim();
+    const answer = textarea ? textarea.value.trim() : (state.answers[step].answer || '').trim();
     if (!answer) return alert("Please write your answer first.");
 
     state.answers[step].answer = answer;
+    state.answers[step].initialAnswer = answer;
     state.answers[step].submitted = true;
     state.answers[step].submittedAt = nowISO();
+    state.answers[step].feedbackViewedAt = nowISO();
     saveState();
 
-    const area = document.getElementById(`feedback-area-${step}`);
-    area.innerHTML = feedbackBlock(step);
-    area.classList.remove('hidden');
-    area.scrollIntoView({ behavior: "smooth", block: "center" });
+    trackEvent('answer_submitted_for_feedback', {
+      step,
+      question: questions.find(q => q.step === step).q,
+      answer,
+      initialAnswer: answer,
+      lockedBeforeFeedback: true
+    });
 
-    trackEvent('answer_submitted_for_feedback', { step, question: questions.find(q => q.step === step).q, answer });
+    renderQuestions();
+    document.getElementById(`feedback-area-${step}`).scrollIntoView({ behavior: "smooth", block: "center" });
   }
 
-  function editAnswer(step) {
-    const area = document.getElementById(`feedback-area-${step}`);
-    area.classList.add('hidden');
-    trackEvent('answer_edit_requested', { step, question: questions.find(q => q.step === step).q, answer: state.answers[step].answer });
+  function saveReflection(step){
+    const reflection = document.getElementById(`reflection-text-${step}`);
+    if(!reflection) return;
+    state.answers[step].reflection = reflection.value.trim();
+    saveState();
+    trackEvent('post_feedback_reflection_saved', {
+      step,
+      question: questions.find(q => q.step === step).q,
+      answer: state.answers[step].initialAnswer,
+      initialAnswer: state.answers[step].initialAnswer,
+      reflection: state.answers[step].reflection
+    });
+    showToast('Reflection saved.');
   }
 
   function finalizeAnswer(step) {
-    const textarea = document.getElementById(`answer-text-${step}`);
-    const answer = textarea.value.trim();
-    if (!answer) return alert("Please write your answer first.");
+    const reflection = document.getElementById(`reflection-text-${step}`);
+    if(reflection){
+      state.answers[step].reflection = reflection.value.trim();
+    }
 
-    state.answers[step].answer = answer;
+    const initialAnswer = (state.answers[step].initialAnswer || state.answers[step].answer || '').trim();
+    if (!initialAnswer) return alert("Please write and lock your initial answer first.");
+
+    state.answers[step].answer = initialAnswer;
+    state.answers[step].initialAnswer = initialAnswer;
     state.answers[step].submitted = true;
     state.answers[step].finalized = true;
     state.answers[step].finalizedAt = nowISO();
     saveState();
 
-    trackEvent('answer_finalized', { step, question: questions.find(q => q.step === step).q, answer });
+    trackEvent('answer_finalized', {
+      step,
+      question: questions.find(q => q.step === step).q,
+      answer: initialAnswer,
+      initialAnswer,
+      reflection: state.answers[step].reflection,
+      lockedBeforeFeedback: true
+    });
+
     renderQuestions();
     const nextUnfinished = questions.find(q => !state.answers[q.step].finalized);
     if(nextUnfinished){
