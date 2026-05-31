@@ -135,7 +135,7 @@
       <h2 class="font-bold text-gray-800 flex items-center gap-2"><i class="fa-solid fa-cloud-arrow-up text-emerald-600"></i> Response tracking</h2>
       <p id="tracking-status" class="text-sm text-gray-600 mt-1">Browser save is active. Cloud tracking is not connected yet.</p>
     </div>
-    <button id="download-pdf-btn" class="py-3 px-5 bg-gray-900 hover:bg-gray-800 text-white rounded-2xl font-semibold"><i class="fa-solid fa-file-pdf mr-2"></i>Download PDF with answers</button>
+    <button id="download-pdf-btn" class="py-3 px-5 bg-gray-300 text-gray-500 rounded-2xl font-semibold cursor-not-allowed" disabled title="Complete all four questions to download your answer PDF"><i class="fa-solid fa-file-pdf mr-2"></i>Download PDF after completing</button>
   </div>
 
   <!-- Artifacts -->
@@ -314,8 +314,12 @@
     updateProgressUI();
   }
 
+  function getFinalizedCount(){
+    return questions.filter(q => state.answers[q.step] && state.answers[q.step].finalized).length;
+  }
+
   function getProgressPercent(){
-    const finalized = Object.values(state.answers).filter(a => a.finalized).length;
+    const finalized = getFinalizedCount();
     return Math.round((finalized / questions.length) * 100);
   }
 
@@ -374,13 +378,27 @@
   }
 
   function updateProgressUI(){
-    const finalized = Object.values(state.answers).filter(a => a.finalized).length;
+    const finalized = getFinalizedCount();
+    const pdfBtn = document.getElementById('download-pdf-btn');
+
     document.getElementById('answers-complete-display').textContent = finalized;
     document.getElementById('progress-fill').style.width = `${getProgressPercent()}%`;
     document.getElementById('learner-display').textContent = state.learner.id ? `Learner: ${state.learner.name || 'Unnamed'} • ${state.learner.id}` : '';
     document.getElementById('tracking-status').textContent = TRACKING_ENDPOINT
       ? 'Browser save is active. Cloud tracking endpoint is connected.'
       : 'Browser save is active. Cloud tracking is not connected yet.';
+
+    if(pdfBtn){
+      const ready = finalized === questions.length;
+      pdfBtn.disabled = !ready;
+      pdfBtn.title = ready ? 'Download your completed answer PDF' : `Complete all four questions to download your answer PDF. ${finalized} of ${questions.length} finalized.`;
+      pdfBtn.innerHTML = ready
+        ? '<i class="fa-solid fa-file-pdf mr-2"></i>Download PDF with answers'
+        : `<i class="fa-solid fa-lock mr-2"></i>PDF unlocks after ${questions.length} finalized`;
+      pdfBtn.className = ready
+        ? 'py-3 px-5 bg-gray-900 hover:bg-gray-800 text-white rounded-2xl font-semibold'
+        : 'py-3 px-5 bg-gray-300 text-gray-500 rounded-2xl font-semibold cursor-not-allowed';
+    }
 
     if(finalized === questions.length){
       completeModule(false);
@@ -621,13 +639,15 @@
 
   function buildAnswersPDF(){
     const printArea = document.getElementById('answer-print-area');
-    const finalizedCount = questions.filter(q => state.answers[q.step] && state.answers[q.step].finalized).length;
+    const finalizedCount = getFinalizedCount();
     const completionCode = state.completionCode || (finalizedCount === questions.length ? getCompletionCode() : 'Not completed yet');
 
-    const questionHTML = questions.map(q => {
+    const finalizedQuestions = questions.filter(q => state.answers[q.step] && state.answers[q.step].finalized);
+
+    const questionHTML = finalizedQuestions.map(q => {
       const answer = state.answers[q.step] || {};
-      const initialAnswer = answer.initialAnswer || answer.answer || 'No locked answer yet.';
-      const reflection = answer.reflection || 'No post-feedback reflection yet.';
+      const initialAnswer = answer.initialAnswer || answer.answer || 'No locked answer saved.';
+      const reflection = answer.reflection || 'No post-feedback reflection saved.';
       const lockedAt = answer.lockedAt ? formatPrintDate(answer.lockedAt) : 'Not locked yet';
       const finalizedAt = answer.finalizedAt ? formatPrintDate(answer.finalizedAt) : 'Not finalized yet';
 
@@ -661,9 +681,17 @@
   }
 
   function downloadAnswersPDF(){
+    const finalized = getFinalizedCount();
+
+    if(finalized < questions.length){
+      showToast(`PDF unlocks after all four answers are finalized. ${finalized} of ${questions.length} complete.`);
+      trackEvent('answers_pdf_blocked', { finalizedAnswers: finalized, requiredAnswers: questions.length });
+      return;
+    }
+
     buildAnswersPDF();
     trackEvent('answers_pdf_downloaded', {
-      finalizedAnswers: questions.filter(q => state.answers[q.step] && state.answers[q.step].finalized).length,
+      finalizedAnswers: finalized,
       completionCode: state.completionCode || ''
     });
     window.print();
